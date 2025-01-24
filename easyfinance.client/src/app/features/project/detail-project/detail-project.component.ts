@@ -2,9 +2,9 @@ import { Component, Input, OnInit } from '@angular/core';
 import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { AddButtonComponent } from '../../../core/components/add-button/add-button.component';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryService } from '../../../core/services/category.service';
-import { map } from 'rxjs';
+import { BehaviorSubject, map, Observable } from 'rxjs';
 import { Category } from '../../../core/models/category';
 import { CategoryDto } from '../../category/models/category-dto';
 import { mapper } from '../../../core/utils/mappings/mapper';
@@ -17,13 +17,18 @@ import { faArrowUp, faArrowDown, faPencil } from '@fortawesome/free-solid-svg-ic
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
-import { MatInputModule } from '@angular/material/input';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { TransactionService } from 'src/app/core/services/transaction.service';
+import { TransactionDto } from '../models/transaction-dto';
+import { Transaction } from 'src/app/core/models/transaction';
+import { CdkTableDataSourceInput } from '@angular/cdk/table';
 import { ProjectDto } from '../models/project-dto';
+import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { compare } from 'fast-json-patch';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 
 @Component({
@@ -39,7 +44,8 @@ import { MatIconModule } from '@angular/material/icon';
     MatInputModule,
     ReactiveFormsModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
+    MatTableModule,
   ],
   templateUrl: './detail-project.component.html',
   styleUrl: './detail-project.component.css'
@@ -52,7 +58,6 @@ export class DetailProjectComponent implements OnInit {
   faArrowUp = faArrowUp;
   faArrowDown = faArrowDown;
   faPencil = faPencil;
-
   btnIncome = 'Income';
   btnCategory = 'Category';
   month: { budget: number, spend: number, overspend: number, remaining: number, earned: number; } = { budget: 0, spend: 0, overspend: 0, remaining: 0, earned: 0 };
@@ -67,13 +72,17 @@ export class DetailProjectComponent implements OnInit {
   httpErrors = false;
   errors: any;
 
-  constructor(
-    private router: Router,
-    private projectService: ProjectService,
-    private categoryService: CategoryService,
-    private incomeService: IncomeService,
-    private errorMessageService: ErrorMessageService
-  ) {
+  private dataSource = new MatTableDataSource<TransactionDto>();
+  private transactions: BehaviorSubject<TransactionDto[]> = new BehaviorSubject<TransactionDto[]>([new TransactionDto()]);
+  transactions$: Observable<CdkTableDataSourceInput<TransactionDto>> = this.transactions.asObservable().pipe(
+    map((transaction) => {
+      const dataSource = this.dataSource;
+      dataSource.data = transaction
+      return dataSource;
+    })
+  );
+
+  constructor(private router: Router, private route: ActivatedRoute, private projectService: ProjectService, private categoryService: CategoryService, private incomeService: IncomeService, private transactionService: TransactionService, private errorMessageService: ErrorMessageService) {
   }
 
   ngOnInit(): void {
@@ -137,6 +146,13 @@ export class DetailProjectComponent implements OnInit {
         next: res => {
           this.month.earned = res.map(c => c.amount).reduce((acc, value) => acc + value, 0);
         }
+      });
+
+    this.transactionService.getLatest(this.projectId, 5)
+      .pipe(map(transactions => mapper.mapArray(transactions, Transaction, TransactionDto)))
+      .subscribe(
+        {
+          next: res => { this.transactions.next(res); }
       });
   }
 
