@@ -37,7 +37,7 @@ export class UserService {
 
   public removeUserInfo() {
     this.loggedUser.next(new User());
-    this.localService.removeData(USER_DATA);
+    this.localService.clearData();
   }
 
   public setUserInfo(firstName: string, lastName: string, preferredCurrency: string): Observable<User> {
@@ -56,6 +56,12 @@ export class UserService {
       newPassword: newPassword,
       oldPassword: oldPassword
     }).pipe(concatMap(res => {
+      return this.refreshUserInfo();
+    }));
+  }
+
+  public setDefaultProject(projectId: string) {
+    return this.http.put(`/api/account/default-project/${projectId}`, {}).pipe(concatMap(res => {
       return this.refreshUserInfo();
     }));
   }
