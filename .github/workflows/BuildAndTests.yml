@@ -7,6 +7,12 @@ on:
   pull_request:
     branches: [ "master" ]
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  #pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -47,7 +53,24 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Run .Net tests
-      run: dotnet test --verbosity normal
+      run: dotnet test --configuration Release --verbosity normal --logger trx --collect:"XPlat Code Coverage"
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: ${{ github.workspace }}/**/TestResults/**/*
+        retention-days: 5
+
+    - name: Publish Test Summary
+      uses: dorny/test-reporter@v1
+      if: always()
+      with:
+        name: Test Results
+        path: "${{ github.workspace }}/**/*.trx"
+        reporter: dotnet-trx
+        fail-on-error: false
 
     - name: Run Angular tests
       id: angular
@@ -73,6 +96,10 @@ jobs:
       id: dotnet
       run: dotnet run --project ./EasyFinance.Server --urls https://localhost:7003/ &
 
+    - name: wait application startup
+      run: sleep 3s
+      shell: bash
+
     - name: Run Cypress tests
       id: cypress
       run: npx cypress run
@@ -84,3 +111,4 @@ jobs:
       with:
         name: cypress-screenshots
         path: ./easyfinance.client/cypress/screenshots
+        retention-days: 5
