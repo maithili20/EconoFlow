@@ -117,97 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Forbidden" xml:space="preserve">
-    <value>You don't have access to do this action</value>
+  <data name="GrantedAccessChangedHtmlMessage" xml:space="preserve">
+    <value>&lt;p&gt;Hi {0}!&lt;/p&gt;&lt;p&gt;Your grant access level in the {1} project has been changed by {2}. Your access level now is {3}&lt;/p&gt;</value>
   </data>
-  <data name="GoalDefinedCantBeLessThanExpensesGoal" xml:space="preserve">
-    <value>Goal defined to category ({0}) can't be less than the sum of the expenses goal ({1})</value>
+  <data name="GrantedAccessChangedSubject" xml:space="preserve">
+    <value>Your grant access level has been changed</value>
   </data>
-  <data name="InvalidDate" xml:space="preserve">
-    <value>Invalid date</value>
+  <data name="GrantedAccessHtmlMessage" xml:space="preserve">
+    <value>&lt;p&gt;Hi {0}!&lt;/p&gt;&lt;p&gt;You have received an invitation from {1} to join in the {2} project. Click the button below to be part of it.&lt;/p&gt; {{{{{3}}}}}</value>
   </data>
-  <data name="PropertyCantBeLessOrEqualThanZero" xml:space="preserve">
-    <value>{0} can't be less or equal than zero</value>
+  <data name="GrantedAccessSubject" xml:space="preserve">
+    <value>You have been granted access to a project</value>
   </data>
-  <data name="PropertyCantBeLessThanZero" xml:space="preserve">
-    <value>{0} can't be less than zero</value>
+  <data name="InvitationHtmlMessage" xml:space="preserve">
+    <value>&lt;p&gt;Hello!&lt;/p&gt;&lt;p&gt;You have received an invitation from {0} to join Econoflow in the {1} project. Click the button below to register.&lt;/p&gt; {{{{{2}}}}}</value>
   </data>
-  <data name="PropertyCantBeNull" xml:space="preserve">
-    <value>{0} can't be null</value>
-  </data>
-  <data name="PropertyCantBeNullOrEmpty" xml:space="preserve">
-    <value>{0} can't be null or empty</value>
-  </data>
-  <data name="CantAddFutureExpenseIncome" xml:space="preserve">
-    <value>You can't add future expense/income</value>
-  </data>
-  <data name="CantAddExpenseOlderThanYears" xml:space="preserve">
-    <value>You can't add expense older than {0} years</value>
-  </data>
-  <data name="CantImportBudgetBecauseAlreadyExists" xml:space="preserve">
-    <value>Can't import budget because already exists</value>
-  </data>
-  <data name="CantAddExpenseItemWithDifferentYearOrMonthFromExpense" xml:space="preserve">
-    <value>Can't add an expense item with different year o r month from expense</value>
-  </data>
-  <data name="InvalidCurrencyCode" xml:space="preserve">
-    <value>Invalid currency code</value>
-  </data>
-  <data name="WarningMessageToUserWhoWantsToDeleteAccount" xml:space="preserve">
-    <value>This action is permanent and cannot be undone. Are you sure you want to delete your account?</value>
-  </data>
-  <data name="WarningMessageToAdminUserWhoWantsToDeleteAccount" xml:space="preserve">
-    <value>&lt;p&gt;This action is permanent and cannot be undone. Are you sure you want to delete your account?&lt;/p&gt;&lt;p&gt;&lt;span style="color: #ff0000;"&gt;You are associated as a sole administrator of the projects below:&lt;/span&gt;&lt;/p&gt;&lt;ul&gt;{0}&lt;/ul&gt;&lt;p&gt;Please transfer the administration to another user before deleting your account. Otherwise, the project(s) will be deleted also.&lt;/p&gt;</value>
-  </data>
-  <data name="InvalidDeleteToken" xml:space="preserve">
-    <value>Delete token expired, please start the delete process again.</value>
-  </data>
-  <data name="EitherUserOrEmailMustBeProvided" xml:space="preserve">
-    <value>Either a User or an Email must be provided.</value>
-  </data>
-  <data name="CantAcceptExpiredInvitation" xml:space="preserve">
-    <value>Can't accept expired invitation</value>
-  </data>
-  <data name="ExpenseNotFound" xml:space="preserve">
-    <value>Expense not found.</value>
-  </data>
-  <data name="InvalidDateRange" xml:space="preserve">
-    <value>Invalid date range.</value>
-  </data>
-  <data name="CategoryNotFound" xml:space="preserve">
-    <value>Category not found.</value>
-  </data>
-  <data name="InvalidExpenseId" xml:space="preserve">
-    <value>ExpenseId is not valid.</value>
-  </data>
-  <data name="NotFound" xml:space="preserve">
-    <value>Not found.</value>
-  </data>
-  <data name="InvalidExpenseItemId" xml:space="preserve">
-    <value>ExpenseItemId is not valid.</value>
-  </data>
-  <data name="InvalidCategoryId" xml:space="preserve">
-    <value>Invalid CategoryId.</value>
-  </data>
-  <data name="InvalidIncomeId" xml:space="preserve">
-    <value>IncomeId is not valid.</value>
-  </data>
-  <data name="IncomeNotFound" xml:space="preserve">
-    <value>Income not found.</value>
-  </data>
-  <data name="InvalidProjectId" xml:space="preserve">
-    <value>ProjectId is not valid.</value>
-  </data>
-  <data name="ProjectNotFound" xml:space="preserve">
-    <value>Project not found.</value>
-  </data>
-  <data name="ExpenseItemNotFound" xml:space="preserve">
-    <value>Expense item not found.</value>
-  </data>
-  <data name="ProjectNotFoundOrInsufficientUserPermissions" xml:space="preserve">
-    <value>Project not found or insufficient user permissions.</value>
-  </data>
-  <data name="AdminRequired" xml:space="preserve">
-    <value>At least one admin is required in the project.</value>
+  <data name="InvitationSubject" xml:space="preserve">
+    <value>You have received an invitation</value>
   </data>
 </root>

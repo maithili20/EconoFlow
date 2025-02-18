@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Net;
-using System.Runtime.CompilerServices;
 using EasyFinance.Application;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Domain.AccessControl;
@@ -164,6 +163,7 @@ if (app.Environment.IsDevelopment())
     unitOfWork.ProjectRepository.Insert(project);
 
     var userProject = new UserProject(user, project, Role.Admin);
+    userProject.SetAccepted();
     unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
     
     unitOfWork.CommitAsync().GetAwaiter().GetResult();

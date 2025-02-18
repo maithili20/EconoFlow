@@ -32,7 +32,6 @@ namespace EasyFinance.Persistence.Repositories
 
         public IGenericRepository<Project> ProjectRepository => this.projectRepository.Value;
         public IGenericRepository<UserProject> UserProjectRepository => this.userProjectRepository.Value;
-
         public IGenericRepository<Income> IncomeRepository => this.incomeRepository.Value;
         public IGenericRepository<Category> CategoryRepository => this.categoryRepository.Value;
         public IGenericRepository<Expense> ExpenseRepository => this.expenseRepository.Value;
@@ -50,7 +49,6 @@ namespace EasyFinance.Persistence.Repositories
 
             updatedEntries.ForEach(e =>
             {
-
                 ((BaseEntity)e.Entity).ModifiedAt = currentDateTime;
             });
 
@@ -66,6 +64,22 @@ namespace EasyFinance.Persistence.Repositories
             });
 
             await this.context.SaveChangesAsync();
+        }
+
+        public ICollection<Guid> GetAffectedUsers(params EntityState[] entityStates)
+        {
+            var entries = this.context.ChangeTracker.Entries();
+
+            var updatedUsers = entries
+                .Where(e => 
+                    e.Entity is UserProject userProject && 
+                    userProject.User != null && 
+                    entityStates.Contains(e.State))
+                .Select(e => ((UserProject)e.Entity).User.Id)
+                .Distinct()
+                .ToList();
+
+            return updatedUsers;
         }
 
         protected virtual void Dispose(bool disposing)

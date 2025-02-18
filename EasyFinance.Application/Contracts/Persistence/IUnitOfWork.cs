@@ -1,7 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
+using Microsoft.EntityFrameworkCore;
 
 namespace EasyFinance.Application.Contracts.Persistence
 {
@@ -15,5 +18,7 @@ namespace EasyFinance.Application.Contracts.Persistence
         IGenericRepository<ExpenseItem> ExpenseItemRepository { get; }
 
         Task CommitAsync();
+
+        ICollection<Guid> GetAffectedUsers(params EntityState[] entityStates);
     }
 }

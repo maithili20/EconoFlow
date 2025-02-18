@@ -1,4 +1,8 @@
-﻿using EasyFinance.Application.Contracts.Persistence;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Mappers;
@@ -8,10 +12,6 @@ using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace EasyFinance.Application.Features.ProjectService
 {
@@ -27,7 +27,7 @@ namespace EasyFinance.Application.Features.ProjectService
         public AppResponse<ICollection<ProjectResponseDTO>> GetAll(Guid userId)
         {
             var result = unitOfWork.UserProjectRepository.NoTrackable()
-                .Where(up => up.User.Id == userId && !up.Project.Archive).Select(p => p.Project)
+                .Where(up => up.User.Id == userId && !up.Project.Archive && up.Accepted).Select(p => p.Project)
                 .ToDTO()
                 .ToList();
 
@@ -54,7 +54,11 @@ namespace EasyFinance.Application.Features.ProjectService
                 return AppResponse<ProjectResponseDTO>.Success(projectExistent.ToDTO());
 
             unitOfWork.ProjectRepository.InsertOrUpdate(project);
-            unitOfWork.UserProjectRepository.InsertOrUpdate(new UserProject(user, project, Role.Admin));
+
+            var userProject = new UserProject(user, project, Role.Admin);
+            userProject.SetAccepted();
+            unitOfWork.UserProjectRepository.InsertOrUpdate(userProject);
+            
             await unitOfWork.CommitAsync();
 
             return AppResponse<ProjectResponseDTO>.Success(project.ToDTO());
@@ -82,11 +86,11 @@ namespace EasyFinance.Application.Features.ProjectService
 
             projectDto.ApplyTo(dto);
 
-            dto.FromDTO(existingProject);
+            var result = dto.FromDTO(existingProject);
 
-            await UpdateAsync(existingProject);
+            await UpdateAsync(result);
 
-            return AppResponse<ProjectResponseDTO>.Success(existingProject.ToDTO());
+            return AppResponse<ProjectResponseDTO>.Success(result.ToDTO());
         }
 
         public async Task<AppResponse> DeleteAsync(Guid id)
@@ -121,7 +125,7 @@ namespace EasyFinance.Application.Features.ProjectService
                 .FirstOrDefaultAsync(up => up.Id == id);
 
             if (project.Categories.Any(c => c.Expenses.Any(e => e.Date.Month == currentDate.Month && e.Date.Year == currentDate.Year && e.Budget > 0)))
-                return AppResponse<ICollection<ExpenseResponseDTO>>.Error(code: "General", description: ValidationMessages.CantImportBudgetBecauseAlreadyExists);
+                return AppResponse<ICollection<ExpenseResponseDTO>>.Error(description: ValidationMessages.CantImportBudgetBecauseAlreadyExists);
 
             var newExpenses = project.Categories.SelectMany(c => c.CopyBudgetToCurrentMonth(user, currentDate)).ToDTO().ToList();
 

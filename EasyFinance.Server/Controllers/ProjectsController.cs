@@ -1,4 +1,6 @@
-﻿using EasyFinance.Application.DTOs.FinancialProject;
+﻿using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.DTOs.FinancialProject;
+using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CategoryService;
 using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
@@ -6,7 +8,9 @@ using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Domain.Financial;
 using EasyFinance.Domain.FinancialProject;
+using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
@@ -21,13 +25,20 @@ namespace EasyFinance.Server.Controllers
         private readonly IProjectService projectService;
         private readonly ICategoryService categoryService;
         private readonly IIncomeService incomeService;
+        private readonly IAccessControlService accessControlService;
         private readonly UserManager<User> userManager;
 
-        public ProjectsController(IProjectService projectService, ICategoryService categoryService, IIncomeService incomeService, UserManager<User> userManager)
+        public ProjectsController(
+            IProjectService projectService,
+            ICategoryService categoryService,
+            IIncomeService incomeService,
+            IAccessControlService accessControlService,
+            UserManager<User> userManager)
         {
             this.projectService = projectService;
             this.categoryService = categoryService;
             this.incomeService = incomeService;
+            this.accessControlService = accessControlService;
             this.userManager = userManager;
         }
 
@@ -60,7 +71,8 @@ namespace EasyFinance.Server.Controllers
 
             var totalBudget = categories.Data.Sum(c => c.Expenses.Sum(e => e.Budget)) + (totalBudgetLastMonthData * (12 - lastMonthData ?? 0));
             var totalSpend = categories.Data.Sum(c => c.Expenses.Sum(e => e.Amount));
-            var totalOverspend = categories.Data.Sum(c => c.Expenses.Sum(e => {
+            var totalOverspend = categories.Data.Sum(c => c.Expenses.Sum(e =>
+            {
                 var overspend = e.Budget - e.Amount;
                 return (overspend < 0) ? overspend * -1 : 0;
             }));
@@ -123,6 +135,18 @@ namespace EasyFinance.Server.Controllers
             var response = await projectService.GetLatestAsync(projectId, numberOfTransactions);
 
             return ValidateResponse(response, HttpStatusCode.OK);
+        }
+
+        [HttpPatch("{projectId}/access")]
+        public async Task<IActionResult> UpdateAccess(Guid projectId, [FromBody] JsonPatchDocument<IList<UserProjectRequestDTO>> userProjectDto)
+        {
+            if (userProjectDto == null) return BadRequest();
+
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            var updateResult = await accessControlService.UpdateAccessAsync(user, projectId, userProjectDto);
+
+            return ValidateResponse(updateResult, HttpStatusCode.OK);
         }
     }
 }
