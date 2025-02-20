@@ -1,4 +1,5 @@
 ﻿using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Features.UserService;
 using EasyFinance.Common.Tests.AccessControl;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Moq;
 using Shouldly;
 
@@ -24,7 +26,7 @@ namespace EasyFinance.Server.Tests.Controllers
         public AccountControllerTests()
         {
             _userStoreMock = new Mock<IUserStore<User>>();
-            var emailSenderMock = new Mock<IEmailSender>();
+            var emailSenderMock = new Mock<IEmailSender<User>>();
 
 #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
             _userManagerMock = new Mock<UserManager<User>>(
@@ -55,7 +57,9 @@ namespace EasyFinance.Server.Tests.Controllers
                signInManager: signInManagerMock.Object,
                emailSender: emailSenderMock.Object,
                userService: Mock.Of<IUserService>(),
-               projectService: this.projectServiceMock.Object
+               projectService: this.projectServiceMock.Object,
+               linkGenerator: Mock.Of<LinkGenerator>(),
+               accessControlService: Mock.Of<IAccessControlService>()
                );
         }
 
