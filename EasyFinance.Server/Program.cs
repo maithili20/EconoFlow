@@ -126,6 +126,14 @@ if (app.Environment.IsDevelopment())
     };
     userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
+    var user2 = new User(firstName: "Second", lastName: "User", preferredCurrency: ri.ISOCurrencySymbol, enabled: true)
+    {
+        UserName = "test1@test.com",
+        Email = "test1@test.com",
+        EmailConfirmed = true
+    };
+    userManager.CreateAsync(user2, "Passw0rd!").GetAwaiter().GetResult();
+
     var income = new Income("Investiments", DateOnly.FromDateTime(DateTime.Now), 3000, user);
     income.SetId(new Guid("0bb277f9-a858-4306-148f-08dcf739f7a1"));
     unitOfWork.IncomeRepository.Insert(income);
@@ -151,7 +159,7 @@ if (app.Environment.IsDevelopment())
     category.AddExpense(expense2);
     unitOfWork.CategoryRepository.Insert(category);
 
-    var project = new Project(name: "Family", type: ProjectType.Personal);
+    var project = new Project(name: "Family");
     project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
     project.AddIncome(income);
     project.AddIncome(income2);

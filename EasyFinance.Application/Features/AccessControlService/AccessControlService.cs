@@ -4,14 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using EasyFinance.Application.Contracts.Persistence;
 using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
+using EasyFinance.Domain.Financial;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -73,7 +74,7 @@ namespace EasyFinance.Application.Features.AccessControlService
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: ValidationMessages.Forbidden, description: ValidationMessages.Forbidden);
 
             var project = unitOfWork.ProjectRepository.Trackable().FirstOrDefault(up => up.Id == projectId);
-            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().Include(up => up.User).Where(up => up.Project.Id == projectId).ToList();
+            var existingUserProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().Include(up => up.User).Where(up => up.Project.Id == projectId && (up.User == null || up.User.Id != inviterUser.Id)).ToList();
 
             if (userProjectsDto.Operations.Count == 0)
                 return AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(existingUserProject.ToDTO());
@@ -84,9 +85,6 @@ namespace EasyFinance.Application.Features.AccessControlService
 
             var entities = dto.FromDTO(project, existingUserProject);
 
-            if (!entities.Any(r => r.Role == Role.Admin))
-                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(description: ValidationMessages.AdminRequired);
-
             // Get modified users to send them an email
             var affectedUsers = unitOfWork.GetAffectedUsers(EntityState.Modified);
 
@@ -94,6 +92,9 @@ namespace EasyFinance.Application.Features.AccessControlService
 
             // Get added users to send them an email
             affectedUsers = [.. affectedUsers, .. unitOfWork.GetAffectedUsers(EntityState.Added)];
+
+            if (entities.Where(e => e.User != null).GroupBy(e => e.User.Id).Any(e => e.Count() > 1) || entities.Where(e => !string.IsNullOrEmpty(e.Email)).GroupBy(e => e.Email).Any(e => e.Count() > 1))
+                return AppResponse<IEnumerable<UserProjectResponseDTO>>.Error(code: "User", description: ValidationMessages.DuplicateUser);
 
             await unitOfWork.CommitAsync();
 
@@ -156,6 +157,34 @@ namespace EasyFinance.Application.Features.AccessControlService
             {
                 logger.LogError(ex, ex.Message);
             }
+        }
+
+        public Task<AppResponse<IEnumerable<UserProjectResponseDTO>>> GetUsers(User user, Guid value)
+        {
+            var userProjects = this.unitOfWork.UserProjectRepository.NoTrackable()
+                .IgnoreQueryFilters()
+                .Include(up => up.User)
+                .Include(up => up.Project)
+                .Where(up => up.Project.Id == value && up.User.Id != user.Id)
+                .ToList();
+
+            return Task.FromResult(AppResponse<IEnumerable<UserProjectResponseDTO>>.Success(userProjects.ToDTO()));
+        }
+
+        public async Task<AppResponse> RemoveAccessAsync(Guid userProjectId)
+        {
+            if (userProjectId == Guid.Empty)
+                AppResponse<ExpenseResponseDTO>.Error(code: nameof(userProjectId), description: ValidationMessages.InvalidUserProjectId);
+
+            var userProject = unitOfWork.UserProjectRepository.Trackable().IgnoreQueryFilters().FirstOrDefault(e => e.Id == userProjectId);
+
+            if (userProject == null)
+                return AppResponse.Error(code: ValidationMessages.NotFound, ValidationMessages.NotFound);
+
+            unitOfWork.UserProjectRepository.Delete(userProject);
+            await unitOfWork.CommitAsync();
+
+            return AppResponse.Success();
         }
     }
 }
