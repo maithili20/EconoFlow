@@ -170,7 +170,10 @@ namespace EasyFinance.Server.Controllers
             }
 
             await SendConfirmationEmailAsync(user, HttpContext, email);
-            return Ok();
+
+            await signInManager.SignInAsync(user, isPersistent: true);
+
+            return Ok(new UserResponseDTO(user));
         }
 
         [HttpPost("login")]
@@ -200,7 +203,7 @@ namespace EasyFinance.Server.Controllers
                 return Unauthorized(result.ToString());
             }
 
-            return Ok();
+            return await this.GetUserAsync();
         }
 
         [HttpPost("logout")]
@@ -452,10 +455,10 @@ namespace EasyFinance.Server.Controllers
                     newDescriptions = [error.Description];
                 }
 
-                errorDictionary[error.Code] = newDescriptions;
+                errorDictionary[error.Code == "DuplicateEmail" ? "Email" : error.Code] = newDescriptions;
             }
 
-            return BadRequest(errorDictionary);
+            return BadRequest(new { errors = errorDictionary });
         }
 
         private static async Task<InfoResponse> CreateInfoResponseAsync<TUser>(TUser user, UserManager<TUser> userManager)
