@@ -1,4 +1,6 @@
-﻿using EasyFinance.Application.DTOs.AccessControl;
+﻿using System.Net;
+using System.Security.Claims;
+using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CategoryService;
@@ -6,16 +8,11 @@ using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Domain.Financial;
-using EasyFinance.Domain.FinancialProject;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using System.Net;
-using System.Security.Claims;
 
 namespace EasyFinance.Server.Controllers
 {
@@ -93,8 +90,7 @@ namespace EasyFinance.Server.Controllers
         {
             if (projectDto == null) return BadRequest();
 
-            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
-            var user = await this.userManager.FindByIdAsync(id.Value);
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO());
 
@@ -122,8 +118,7 @@ namespace EasyFinance.Server.Controllers
         [HttpPost("{projectId}/copy-budget-previous-month")]
         public async Task<IActionResult> CopyFrom(Guid projectId, [FromBody] DateTime currentDate)
         {
-            var id = this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier);
-            var user = await this.userManager.FindByIdAsync(id.Value);
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
             var newExpenses = await projectService.CopyBudgetFromPreviousMonthAsync(user, projectId, currentDate);
 
