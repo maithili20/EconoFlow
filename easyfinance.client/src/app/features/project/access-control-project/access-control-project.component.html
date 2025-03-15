@@ -4,8 +4,9 @@
 
       <!-- User Input with Autocomplete -->
       <mat-form-field appearance="fill" class="w-100">
-        <mat-label>User</mat-label>
+        <mat-label>User Email</mat-label>
         <input matInput
+               placeholder="user@provider.com"
                id="user"
                formControlName="user"
                [matAutocomplete]="auto" />
@@ -15,7 +16,7 @@
 
         <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn">
           <mat-option *ngFor="let user of filteredUsers$ | async" [value]="user">
-            {{ user.userName }} - {{ user.userEmail }}
+            {{ user.fullName }} - {{ user.email }}
           </mat-option>
         </mat-autocomplete>
       </mat-form-field>

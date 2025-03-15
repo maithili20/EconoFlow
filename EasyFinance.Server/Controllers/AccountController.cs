@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using EasyFinance.Application.DTOs.AccessControl;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.UserService;
+using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
 using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
@@ -151,7 +152,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!result.Succeeded)
             {
-                return this.ValidateResponse(result);
+                return this.ValidateIdentityResponse(result);
             }
 
             if (token.HasValue)
@@ -236,7 +237,7 @@ namespace EasyFinance.Server.Controllers
 
             if (user is null || !(await userManager.IsEmailConfirmedAsync(user)))
             {
-                return this.ValidateResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidToken()));
+                return this.ValidateIdentityResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidToken()));
             }
 
             IdentityResult result;
@@ -252,7 +253,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!result.Succeeded)
             {
-                return this.ValidateResponse(result);
+                return this.ValidateIdentityResponse(result);
             }
 
             return Ok();
@@ -268,7 +269,7 @@ namespace EasyFinance.Server.Controllers
 
             if (!string.IsNullOrEmpty(infoRequest.NewEmail) && !emailAddressAttribute.IsValid(infoRequest.NewEmail))
             {
-                return this.ValidateResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(infoRequest.NewEmail)));
+                return this.ValidateIdentityResponse(IdentityResult.Failed(userManager.ErrorDescriber.InvalidEmail(infoRequest.NewEmail)));
             }
 
             if (!string.IsNullOrEmpty(infoRequest.NewPassword))
@@ -281,7 +282,7 @@ namespace EasyFinance.Server.Controllers
                 var changePasswordResult = await userManager.ChangePasswordAsync(user, infoRequest.OldPassword, infoRequest.NewPassword);
                 if (!changePasswordResult.Succeeded)
                 {
-                    return this.ValidateResponse(changePasswordResult);
+                    return this.ValidateIdentityResponse(changePasswordResult);
                 }
             }
 
@@ -341,17 +342,15 @@ namespace EasyFinance.Server.Controllers
 
             List<Guid> filterUsers = [user.Id];
 
-            if (projectId.HasValue)
-            {
-                var projectUsers = await accessControlService.GetUsers(user, projectId.Value);
+            var knowUsers = await accessControlService.GetAllKnowUsersAsync(user, projectId);
 
-                if (projectUsers.Succeeded)
-                    filterUsers.AddRange(projectUsers.Data.Where(u => u.UserId.HasValue).Select(u => u.UserId.Value));
-            }
+            if (!knowUsers.Succeeded)
+                return this.ValidateResponse(knowUsers, HttpStatusCode.OK);
 
             searchTerm = Regex.Escape(searchTerm).ToLower();
 
-            var users = userManager.Users
+
+            var users = knowUsers.Data
                 .Where(u => !filterUsers.Contains(u.Id))
                 .Where(u =>
                     u.FirstName.ToLower().Contains(searchTerm) ||
@@ -359,7 +358,7 @@ namespace EasyFinance.Server.Controllers
                     u.Email.ToLower().Contains(searchTerm))
                 .OrderBy(u => u.FirstName)
                 .Take(5)
-                .Select(u => new UserProjectResponseDTO(u))
+                .ToSearchResponseDTO()
                 .ToList();
 
             return Ok(users);
@@ -433,7 +432,7 @@ namespace EasyFinance.Server.Controllers
             await emailSender.SendConfirmationLinkAsync(user, email, HtmlEncoder.Default.Encode(confirmEmailUrl));
         }
 
-        private IActionResult ValidateResponse(IdentityResult identityResult)
+        private IActionResult ValidateIdentityResponse(IdentityResult identityResult)
         {
             var errorDictionary = new Dictionary<string, string[]>(1);
 
