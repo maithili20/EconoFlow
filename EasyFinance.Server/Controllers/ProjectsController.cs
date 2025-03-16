@@ -50,9 +50,11 @@ namespace EasyFinance.Server.Controllers
         }
 
         [HttpGet("{projectId}")]
-        public async Task<IActionResult> GetProjectByIdAsync(Guid projectId)
+        public IActionResult GetProjectByIdAsync(Guid projectId)
         {
-            var project = await projectService.GetByIdAsync(projectId);
+            var userId = new Guid(this.HttpContext.User.Claims.First(claim => claim.Type == ClaimTypes.NameIdentifier).Value);
+
+            var project = projectService.GetById(userId, projectId);
             if (project == null) return NotFound();
 
             return ValidateResponse(project, HttpStatusCode.OK);
