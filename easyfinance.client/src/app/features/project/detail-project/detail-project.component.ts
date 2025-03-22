@@ -1,43 +1,47 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
-import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
 import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
-import { CategoryService } from '../../../core/services/category.service';
 import { BehaviorSubject, map, Observable } from 'rxjs';
+import { CommonModule } from '@angular/common';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { faArrowUp, faArrowDown, faPlus } from '@fortawesome/free-solid-svg-icons';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { CdkTableDataSourceInput } from '@angular/cdk/table';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
+import { ReturnButtonComponent } from '../../../core/components/return-button/return-button.component';
+import { CategoryService } from '../../../core/services/category.service';
 import { Category } from '../../../core/models/category';
 import { CategoryDto } from '../../category/models/category-dto';
 import { mapper } from '../../../core/utils/mappings/mapper';
 import { IncomeService } from '../../../core/services/income.service';
 import { Income } from '../../../core/models/income';
 import { IncomeDto } from '../../income/models/income-dto';
-import { CommonModule } from '@angular/common';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faArrowUp, faArrowDown, faPlus } from '@fortawesome/free-solid-svg-icons';
 import { ProjectService } from '../../../core/services/project.service';
 import { CurrencyFormatPipe } from '../../../core/utils/pipes/currency-format.pipe';
 import { dateUTC } from '../../../core/utils/date';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TransactionDto } from '../models/transaction-dto';
 import { Transaction } from 'src/app/core/models/transaction';
-import { CdkTableDataSourceInput } from '@angular/cdk/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { UserProjectDto } from '../models/user-project-dto';
 import { Role } from '../../../core/enums/Role';
 import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
+import { BudgetBarComponent } from '../../../core/components/budget-bar/budget-bar.component';
 
 @Component({
     selector: 'app-detail-project',
     imports: [
-        CommonModule,
-        CurrentDateComponent,
-        ReturnButtonComponent,
-        FontAwesomeModule,
-        CurrencyFormatPipe,
-        MatButtonModule,
-        MatIconModule,
-        MatTableModule,
+      CommonModule,
+      CurrentDateComponent,
+      ReturnButtonComponent,
+      BudgetBarComponent,
+      FontAwesomeModule,
+      CurrencyFormatPipe,
+      MatButtonModule,
+      MatIconModule,
+      MatTableModule,
+      TranslateModule
     ],
     templateUrl: './detail-project.component.html',
     styleUrl: './detail-project.component.css'
@@ -78,7 +82,9 @@ export class DetailProjectComponent implements OnInit {
     private projectService: ProjectService,
     private categoryService: CategoryService,
     private incomeService: IncomeService,
-    private dialog: MatDialog) {
+    private dialog: MatDialog,
+    private translateService: TranslateService
+  ) {
   }
 
   ngOnInit(): void {
@@ -165,7 +171,7 @@ export class DetailProjectComponent implements OnInit {
     this.dialog.open(PageModalComponent, {
       autoFocus: 'input',
       data: {
-        title: 'Create Expense Category'
+        title: this.translateService.instant('CreateExpenseCategory')
       }
     }).afterClosed().subscribe((result) => {
       if (result) {
@@ -188,40 +194,6 @@ export class DetailProjectComponent implements OnInit {
 
   getCurrentDate(): Date {
     return CurrentDateComponent.currentDate;
-  }
-
-  getPercentageSpend(spend: number, budget: number): number {
-    return budget === 0 ? 0 : spend * 100 / budget;
-  }
-
-  getClassToProgressBar(percentage: number): string {
-    if (percentage <= 75) {
-      return 'bg-info';
-    } else if (percentage <= 100) {
-      return 'bg-warning';
-    }
-
-    return 'bg-danger';
-  }
-
-  getTextBasedOnPercentage(percentage: number): string {
-    if (percentage <= 75) {
-      return 'Expenses';
-    } else if (percentage <= 100) {
-      return 'Risk of overspend';
-    }
-
-    return 'Overspend /';
-  }
-
-  getClassBasedOnPercentage(percentage: number): string {
-    if (percentage <= 75) {
-      return '';
-    } else if (percentage <= 100) {
-      return 'warning';
-    }
-
-    return 'danger';
   }
 
   getClassBasedOnCategory(category: CategoryDto): string {

@@ -18,7 +18,7 @@
 
         <mat-form-field class="mb-2" [style.width.%]="100">
           <mat-label>{{ 'FieldEmailAddress' | translate }}</mat-label>
-          <input id="email" [attr.placeholder]="'PlaceholderEmailAddress' | translate" matInput formControlName="email">
+          <input id="email" placeholder="{{ 'PlaceholderEmailAddress' | translate }}" matInput formControlName="email">
           @if ((email?.invalid && email?.touched) || httpErrors) {
           <mat-error *ngFor="let error of getFormFieldErrors('email')">{{ error | translate }}</mat-error>
           }
@@ -26,7 +26,7 @@
 
         <mat-form-field [style.width.%]="100">
           <mat-label>{{ 'FieldPassword' | translate }}</mat-label>
-          <input id="password" [attr.placeholder]="'PlaceholderPassword' | translate" matInput formControlName="password"
+          <input id="password" placeholder="{{ 'PlaceholderPassword' | translate }}" matInput formControlName="password"
                  [type]="hide ? 'password' : 'text'">
           <mat-icon matSuffix (click)="hide = !hide">{{ hide ? 'visibility_off' : 'visibility' }}</mat-icon>
           @if ((password?.invalid && password?.touched) || httpErrors) {
@@ -35,14 +35,14 @@
         </mat-form-field>
 
         <a [routerLink]="['/recovery']" class="float-end mb-2" routerLinkActive="active">{{ 'ForgotPassword' | translate }}</a>
-        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">{{ 'SignIn' | translate }}</button>
+        <button class="w-100 btn btn-lg btn-primary" type="submit" [disabled]="loginForm.invalid">{{ 'ButtonSignIn' | translate }}</button>
         <div *ngIf="httpErrors && errors?.['general']">
-          <p class="mt-5 mb-3 text-danger text-center">{{ errors['general'] }}</p>
+          <p class="mt-5 mb-3 text-danger text-center">{{ errors['general'] | translate }}</p>
         </div>
       </form>
       <span class="login-footer">
         {{ 'NeedAccount' | translate }}
-        <a [routerLink]="['/register']" routerLinkActive="active">{{ 'SignUp' | translate }}</a>
+        <a [routerLink]="['/register']" routerLinkActive="active">{{ 'ButtonSignUp' | translate }}</a>
       </span>
     </div>
   </div>

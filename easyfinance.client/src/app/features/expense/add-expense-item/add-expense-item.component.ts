@@ -10,7 +10,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { CurrencyMaskModule } from 'ng2-currency-mask';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { ExpenseItemDto } from '../models/expense-item-dto';
 import { Expense } from '../../../core/models/expense';
@@ -66,7 +66,8 @@ export class AddExpenseItemComponent implements OnInit {
     private router: Router,
     private errorMessageService: ErrorMessageService,
     private snackBar: SnackbarComponent,
-    private globalService: GlobalService
+    private globalService: GlobalService,
+    private translateService: TranslateService
   ) {
     this.thousandSeparator = this.globalService.groupSeparator;
     this.decimalSeparator = this.globalService.decimalSeparator;
@@ -108,14 +109,11 @@ export class AddExpenseItemComponent implements OnInit {
       let name = this.name?.value;
       let date = this.date?.value.toISOString().split("T")[0];
       let amount = this.amount?.value;
-      if (isNaN(amount)) {
-        amount = this.amount?.value.replace('.', '')?.replace(',', '.');
-      }
 
       var newExpenseItem = <ExpenseItemDto>({
         name: name,
         date: date,
-        amount: amount === "" ? 0 : amount,
+        amount: amount === "" || amount === null ? 0 : amount,
       });
 
       let newExpense = structuredClone(this.expense)
@@ -125,7 +123,7 @@ export class AddExpenseItemComponent implements OnInit {
 
       this.expenseService.update(this.projectId, this.categoryId, this.expenseId, patch).subscribe({
         next: response => {
-          this.snackBar.openSuccessSnackbar('Created successfully!');
+          this.snackBar.openSuccessSnackbar(this.translateService.instant('CreatedSuccess'));
           this.router.navigate([{ outlets: { modal: null } }]);
         },
         error: (response: ApiErrorResponse) => {
@@ -139,26 +137,6 @@ export class AddExpenseItemComponent implements OnInit {
   }
 
   getFormFieldErrors(fieldName: string): string[] {
-    const control = this.expenseItemForm.get(fieldName);
-    const errors: string[] = [];
-
-    if (control && control.errors) {
-      for (const key in control.errors) {
-        if (control.errors.hasOwnProperty(key)) {
-          switch (key) {
-            case 'required':
-              errors.push('This field is required.');
-              break;
-            case 'min':
-              errors.push(`The value should be greater than ${control.errors[key].min}.`);
-              break;
-            default:
-              errors.push(control.errors[key]);
-          }
-        }
-      }
-    }
-
-    return errors;
+    return this.errorMessageService.getFormFieldErrors(this.expenseItemForm, fieldName);
   }
 }
