@@ -32,7 +32,7 @@
                 <button name="edit" class="btn btn-secondary" (click)="edit(income)">
                   <fa-icon [icon]="faPenToSquare"></fa-icon>
                 </button>
-                <button name="delete" class="btn btn-danger" (click)="triggerDelete(income.id)">
+                <button name="delete" class="btn btn-danger" (click)="triggerDelete(income)">
                   <fa-icon [icon]="faTrash"></fa-icon>
                 </button>
               </div>
@@ -93,11 +93,10 @@
         }
         @if (canAddOrEdit()){
         <button class="list-group-item btn-default btn-add" (click)="add()" style="height: 72px">
-          <fa-icon [icon]="faPlus" size="2xl"></fa-icon>
+          <fa-icon class="btn btn-primary btn-circle" [icon]="faPlus" size="2xl"></fa-icon>
         </button>
         }
       </div>
     </div>
   </div>
 </div>
-<app-confirm-dialog (confirmed)="handleConfirmation($event)"></app-confirm-dialog>

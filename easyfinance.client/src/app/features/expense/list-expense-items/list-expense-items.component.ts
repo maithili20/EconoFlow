@@ -220,14 +220,12 @@ export class ListExpenseItemsComponent implements OnInit {
     this.router.navigate([{ outlets: { modal: ['projects', this.projectId, 'categories', this.categoryId, 'expenses', this.expenseId, 'add-expense-item'] } }]);
 
     this.dialog.open(PageModalComponent, {
-      autoFocus: 'input',
-      data: {
-        title: this.translateService.instant('CreateExpense')
-      }
+      autoFocus: 'input'
     }).afterClosed().subscribe((result) => {
       if (result) {
         this.fillData();
       }
+      this.router.navigate([{ outlets: { modal: null } }]);
     });
   }
 
@@ -252,15 +250,17 @@ export class ListExpenseItemsComponent implements OnInit {
     this.router.navigate(['/projects', this.projectId, 'categories', this.categoryId, 'expenses', { currentDate: this.currentDate.toISOString().substring(0, 10) }]);
   }
 
-  triggerDelete(itemId: string): void {
-    this.itemToDelete = itemId;
-    this.ConfirmDialog.openModal(this.translateService.instant('DeleteExpense'), this.translateService.instant('AreYouSureYouWantDeleteThisExpense'), 'ButtonDelete');
-  }
+  triggerDelete(expense: ExpenseItemDto): void {
+    this.itemToDelete = expense.id;
+    var message = this.translateService.instant('AreYouSureYouWantDeleteExpense', { value: expense.name });
 
-  handleConfirmation(result: boolean): void {
-    if (result) {
-      this.remove(this.itemToDelete);
-    }
+    this.dialog.open(ConfirmDialogComponent, {
+      data: { title: 'DeleteExpense', message: message, action: 'ButtonDelete' },
+    }).afterClosed().subscribe((result) => {
+      if (result) {
+        this.remove(this.itemToDelete);
+      }
+    });
   }
 
   getFormFieldErrors(fieldName: string): string[] {
