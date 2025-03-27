@@ -70,10 +70,6 @@ export class AppComponent {
     }
   }
 
-  isIndex(): boolean {
-    return this.router.url === '/';
-  }
-
   isLogin(): boolean {
     return this.router.url === '/login';
   }
