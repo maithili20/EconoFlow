@@ -4,20 +4,18 @@ describe('EconoFlow - project add Tests', () => {
       const user = users.testUser;
 
       cy.login(user.username, user.password)
+
+      cy.window().then((win) => {
+        win.sessionStorage.setItem("visited", "true");
+      });
+
+      cy.visit('/projects')
     })
   })
 
   it('should add a new project', () => {
     cy.intercept('GET', '**/projects*').as('getProjects')
     cy.intercept('POST', '**/projects*').as('postProjects')
-
-    cy.visit('/projects')
-
-    cy.wait('@getProjects')
-    
-    cy.visit('/projects')
-
-    cy.wait('@getProjects')
 
     cy.fixture('projects').then((projects) => {
       var project = projects.testPersonalProject;
