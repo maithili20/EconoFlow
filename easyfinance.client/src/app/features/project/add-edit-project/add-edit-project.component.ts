@@ -8,12 +8,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { CommonModule } from '@angular/common';
 import { compare } from 'fast-json-patch';
 import { Router } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { TranslateModule } from '@ngx-translate/core';
 import { ProjectService } from '../../../core/services/project.service';
 import { ProjectDto } from '../models/project-dto';
 import { ApiErrorResponse } from '../../../core/models/error';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { CurrencyService } from '../../../core/services/currency.service';
+import confetti from 'canvas-confetti';
+import { MatDialogRef } from '@angular/material/dialog';
+import { PageModalComponent } from '../../../core/components/page-modal/page-modal.component';
 
 @Component({
   selector: 'app-add-edit-project',
@@ -34,10 +37,11 @@ import { CurrencyService } from '../../../core/services/currency.service';
 export class AddEditProjectComponent implements OnInit {
   projectForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   editingProject!: ProjectDto;
 
   constructor(
+    private dialogRef: MatDialogRef<PageModalComponent>,
     private projectService: ProjectService,
     private currencyService: CurrencyService,
     private router: Router,
@@ -58,18 +62,29 @@ export class AddEditProjectComponent implements OnInit {
       const name = this.name?.value;
       const preferredCurrency = this.preferredCurrency?.value;
 
-      const newProject = <ProjectDto>({
+      const newProject = ({
         id: this.editingProject.id ?? '',
         name: name,
         preferredCurrency: preferredCurrency
-      });
+      }) as ProjectDto;
 
       if (this.editingProject.id) {
         this.updateProjectName(newProject);
       } else {
         this.projectService.addProject(newProject).subscribe({
           next: response => {
-            this.router.navigate([{ outlets: { modal: null } }]);
+            const userProject = response.body;
+
+            if (userProject) {
+              if (response.status == 201) {
+                this.projectService.selectUserProject(userProject);
+                this.celebrate();
+                this.router.navigate([{ outlets: { modal: ['projects', userProject.project.id, 'smart-setup'] } }]);
+              } else {
+                this.dialogRef.close();
+                this.router.navigate(['projects', userProject.project.id]);
+              }
+            }
           },
           error: (response: ApiErrorResponse) => {
             this.httpErrors = true;
@@ -118,5 +133,18 @@ export class AddEditProjectComponent implements OnInit {
 
   get preferredCurrency() {
     return this.projectForm.get('preferredCurrency');
+  }
+
+  celebrate() {
+    confetti({
+      particleCount: 150,
+      spread: 150,
+      ticks: 250,
+      startVelocity: 30,
+      decay: 0.95,
+      origin: {
+        y: 0.5
+      }
+    });
   }
 }

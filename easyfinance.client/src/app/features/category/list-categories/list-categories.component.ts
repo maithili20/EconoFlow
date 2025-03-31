@@ -27,6 +27,7 @@ import { ProjectService } from '../../../core/services/project.service';
 import { Role } from '../../../core/enums/Role';
 import { startWith } from 'rxjs/operators';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { DefaultCategory } from '../../../core/models/default-category';
 
 @Component({
     selector: 'app-list-categories',
@@ -71,7 +72,7 @@ export class ListCategoriesComponent implements OnInit {
   editingCategory: CategoryDto = new CategoryDto();
   itemToDelete!: string;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
   userProject!: UserProjectDto;
 
   @Input({ required: true })
@@ -103,7 +104,7 @@ export class ListCategoriesComponent implements OnInit {
 
     this.categoryService.getDefaultCategories(this.projectId).subscribe({
       next: (categories) => {
-        const categoryNames = categories.map((category: any) => category.name);
+        const categoryNames = categories.map((category: DefaultCategory) => category.name);
         this.defaultCategories.next(categoryNames);
       },
       error: (error) => {

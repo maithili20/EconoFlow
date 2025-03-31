@@ -17,7 +17,7 @@ namespace EasyFinance.Application.Features.ProjectService
 
         AppResponse<UserProjectResponseDTO> GetById(Guid userId, Guid projectId);
 
-        Task<AppResponse<ProjectResponseDTO>> CreateAsync(User user, Project project);
+        Task<AppResponse<UserProjectResponseDTO>> CreateAsync(User user, Project project, bool isFirstProject);
 
         Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Project project);
         Task<AppResponse<ProjectResponseDTO>> UpdateAsync(Guid projectId, JsonPatchDocument<ProjectRequestDTO> projectDto);
@@ -31,5 +31,7 @@ namespace EasyFinance.Application.Features.ProjectService
         Task<AppResponse<IList<string>>> GetProjectsWhereUserIsSoleAdminAsync(User user);
 
         Task<AppResponse<ICollection<TransactionResponseDTO>>> GetLatestAsync(Guid projectId, int numberOfTransactions);
+
+        Task<AppResponse> SmartSetupAsync(User user, Guid projectId, SmartSetupRequestDTO smartRequest);
     }
 }

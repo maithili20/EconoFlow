@@ -13,6 +13,7 @@ import { CategoryService } from '../../../core/services/category.service';
 import { CategoryDto } from '../models/category-dto';
 import { ErrorMessageService } from '../../../core/services/error-message.service';
 import { ApiErrorResponse } from '../../../core/models/error';
+import { DefaultCategory } from '../../../core/models/default-category';
 
 @Component({
     selector: 'app-add-category',
@@ -32,7 +33,7 @@ import { ApiErrorResponse } from '../../../core/models/error';
 export class AddCategoryComponent implements OnInit {
   categoryForm!: FormGroup;
   httpErrors = false;
-  errors!: { [key: string]: string };
+  errors!: Record<string, string[]>;
 
   @Input({ required: true }) projectId!: string;
 
@@ -55,7 +56,7 @@ export class AddCategoryComponent implements OnInit {
 
     this.categoryService.getDefaultCategories(this.projectId).subscribe({
       next: (categories) => {
-        const categoryNames = categories.map((category: any) => category.name);
+        const categoryNames = categories.map((category: DefaultCategory) => category.name);
         this.defaultCategories.next(categoryNames); 
       },
       error: (error) => {

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Security.Claims;
 using EasyFinance.Application.DTOs.AccessControl;
+using EasyFinance.Application.DTOs.Financial;
 using EasyFinance.Application.DTOs.FinancialProject;
 using EasyFinance.Application.Features.AccessControlService;
 using EasyFinance.Application.Features.CategoryService;
@@ -8,7 +9,6 @@ using EasyFinance.Application.Features.IncomeService;
 using EasyFinance.Application.Features.ProjectService;
 using EasyFinance.Application.Mappers;
 using EasyFinance.Domain.AccessControl;
-using EasyFinance.Infrastructure;
 using EasyFinance.Infrastructure.DTOs;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.JsonPatch;
@@ -94,9 +94,19 @@ namespace EasyFinance.Server.Controllers
 
             var user = await this.userManager.GetUserAsync(this.HttpContext.User);
 
-            var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO());
+            var existentUserProjects = this.projectService.GetAll(user.Id);
 
-            return ValidateResponse(actionName: nameof(GetProjectByIdAsync), routeValues: new { projectId = createdProject.Data.Id }, appResponse: createdProject);
+            if (existentUserProjects.Data.Count > 0)
+            {
+                var projectExistent = existentUserProjects.Data.FirstOrDefault(p => p.Project.Name == projectDto.Name);
+
+                if (projectExistent != default)
+                    return ValidateResponse(AppResponse<UserProjectResponseDTO>.Success(projectExistent), HttpStatusCode.OK);
+            }
+
+            var createdProject = await projectService.CreateAsync(user, projectDto.FromDTO(), existentUserProjects.Data.Count == 0);
+
+            return ValidateResponse(actionName: nameof(GetProjectByIdAsync), routeValues: new { projectId = createdProject.Data.Project.Id }, appResponse: createdProject);
         }
 
         [HttpPatch("{projectId}")]
@@ -186,6 +196,21 @@ namespace EasyFinance.Server.Controllers
                 throw new UnauthorizedAccessException();
 
             AppResponse result = await this.accessControlService.RemoveAccessAsync(userProjectId);
+
+            return ValidateResponse(result, HttpStatusCode.OK);
+        }
+
+        [HttpPost("{projectId}/smart-setup")]
+        public async Task<IActionResult> SmartSetupAsync(Guid projectId, SmartSetupRequestDTO smartRequest)
+        {
+            var user = await this.userManager.GetUserAsync(this.HttpContext.User);
+
+            var hasAuthorization = accessControlService.HasAuthorization(user.Id, projectId, Role.Manager);
+
+            if (!hasAuthorization)
+                throw new UnauthorizedAccessException();
+            
+            AppResponse result = await this.projectService.SmartSetupAsync(user, projectId, smartRequest);
 
             return ValidateResponse(result, HttpStatusCode.OK);
         }

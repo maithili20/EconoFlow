@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Project } from '../models/project';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, map } from 'rxjs';
 import { Operation } from 'fast-json-patch';
 import { YearExpensesSummaryDto } from '../../features/project/models/year-expenses-summary-dto';
@@ -9,6 +9,7 @@ import { Transaction } from '../models/transaction';
 import { ProjectDto } from '../../features/project/models/project-dto';
 import { UserProject } from '../models/user-project';
 import { UserService } from './user.service';
+import { DefaultCategory } from '../models/default-category';
 const PROJECT_DATA = "project_data";
 
 @Injectable({
@@ -36,14 +37,13 @@ export class ProjectService {
     });
   }
 
-  addProject(project: Project): Observable<Project> {
-    return this.http.post<Project>('/api/projects/', project, {
-      observe: 'body',
-      responseType: 'json'
-    }).pipe(map(project => {
+  addProject(project: Project): Observable<HttpResponse<UserProject>> {
+    return this.http.post<UserProject>('/api/projects/', project, {
+      observe: 'response'
+    }).pipe(map(result => {
       this.userService.refreshUserInfo().subscribe();
 
-      return project;
+      return result;
     }));
   }
 
@@ -131,5 +131,14 @@ export class ProjectService {
     return this.http.delete('/api/projects/' + id + '/access/' + userProjectId, {
       observe: 'response'
     }).pipe(map(res => res.ok));
+  }
+
+  smartSetup(id: string, annualIncome: number, defaultCategories: DefaultCategory[]): Observable<HttpResponse<unknown>> {
+    return this.http.post('/api/projects/' + id + '/smart-setup/', {
+      annualIncome: annualIncome,
+      defaultCategories: defaultCategories
+    }, {
+      observe: 'response'
+    });
   }
 }
