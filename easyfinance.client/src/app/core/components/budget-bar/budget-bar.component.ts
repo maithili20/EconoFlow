@@ -32,9 +32,9 @@ export class BudgetBarComponent {
   }
 
   getClassBasedOnPercentage(percentage: number): string {
-    if (percentage <= 75) {
+    if (percentage <= this.getCurrPercentageOfMonth()) {
       return '';
-    } else if (percentage <= 100) {
+    } else if (percentage <= 100 && percentage > this.getCurrPercentageOfMonth()){
       return 'warning';
     }
 
@@ -42,9 +42,9 @@ export class BudgetBarComponent {
   }
 
   getTextBasedOnPercentage(percentage: number): string {
-    if (percentage <= 75) {
+    if(percentage <= this.getCurrPercentageOfMonth()){
       return '';
-    } else if (percentage <= 100) {
+    }else if(percentage <= 100 && percentage > this.getCurrPercentageOfMonth()){
       return 'RiskOverspend';
     }
 
@@ -52,12 +52,16 @@ export class BudgetBarComponent {
   }
 
   getClassToProgressBar(percentage: number): string {
-    if (percentage <= 75) {
+    if(percentage <= this.getCurrPercentageOfMonth()){
       return 'bg-info';
-    } else if (percentage <= 100) {
+    }else if(percentage <= 100 && percentage > this.getCurrPercentageOfMonth()){
       return 'bg-warning';
     }
 
     return 'bg-danger';
+  }
+  getCurrPercentageOfMonth():number{
+    var today = new Date();
+    return today ? (today.getDate() / new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()) * 100 : 0;
   }
 }

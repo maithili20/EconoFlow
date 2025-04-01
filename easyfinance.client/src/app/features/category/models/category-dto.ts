@@ -19,9 +19,12 @@ export class CategoryDto {
 
     if (percentage == undefined) {
       return CategoryStatus.NotDefined;
+    }else if(percentage <= this.getCurrPercentageOfMonth()){
+      return CategoryStatus.Normal;
+    }else if(percentage <= 100 && percentage > this.getCurrPercentageOfMonth()){
+      return CategoryStatus.Risk;
     }
-
-    return percentage < 75 ? CategoryStatus.Normal : percentage <= 100 ? CategoryStatus.Risk : CategoryStatus.Exceeded;
+    return  CategoryStatus.Exceeded;
   }
 
   public getTotalSpend(): number {
@@ -42,5 +45,9 @@ export class CategoryDto {
 
   public getPercentageSpend(): number | undefined {
     return this.getTotalBudget() == 0 ? undefined : (this.getTotalSpend() + this.getTotalOverspend()) * 100 / this.getTotalBudget();
+  }
+  public getCurrPercentageOfMonth():number{
+    var today = new Date();
+    return today ? (today.getDate() / new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()) * 100 : 0;
   }
 }
