@@ -1,0 +1,14 @@
+.progress-wrapper {
+    width: 100%;
+    position: relative;
+  }
+  
+  .week-line {
+      position: absolute;
+      top: 0;
+      height: 25px;
+      border-left: 2px dashed #2d3236; 
+      z-index: 1;
+      margin-top: -5px;
+    }
+  

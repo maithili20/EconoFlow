@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, Input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { CurrencyFormatPipe } from '../../utils/pipes/currency-format.pipe';
+import { CurrentDateComponent } from '../../../core/components/current-date/current-date.component';
 
 @Component({
   selector: 'app-budget-bar',
@@ -26,6 +27,9 @@ export class BudgetBarComponent {
   date!: Date | undefined;
   @Input()
   hideDecimals: boolean = false;
+  weekLines: number[] = [];
+  @Input()
+  typeMonthOrYear: string = 'month';
 
   getPercentageSpend(spend: number, budget: number): number {
     return budget === 0 ? 0 : spend * 100 / budget;
@@ -63,5 +67,33 @@ export class BudgetBarComponent {
   getCurrPercentageOfMonth():number{
     var today = new Date();
     return today ? (today.getDate() / new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()) * 100 : 0;
+  }
+  getWeeksInCurrentMonth(): number {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), now.getMonth(), 1);
+    const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const daysInMonth = end.getDate();
+
+    // Week starts on Sunday (0)
+    const startDay = start.getDay();
+    const totalWeeks = Math.ceil((startDay + daysInMonth) / 7);
+
+    return totalWeeks;
+  }
+
+  ngOnInit(): void {
+  if (this.checkIfCurrentMonth()) {
+    const weeks = this.getWeeksInCurrentMonth();
+    this.weekLines = Array.from({ length: weeks - 1 }, (_, i) => ((i + 1) / weeks) * 100);
+    }
+  }
+
+  checkIfCurrentMonth(): boolean {
+    var today = new Date();
+    return this.typeMonthOrYear=="month" && today.getMonth()  == CurrentDateComponent.currentDate.getMonth() && today.getFullYear() == CurrentDateComponent.currentDate.getFullYear();
+  }
+
+  checktypeMonthOrYear(): string {
+    return this.typeMonthOrYear;
   }
 }
