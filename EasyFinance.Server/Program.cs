@@ -83,6 +83,7 @@ try
             Email = "test@test.com",
             EmailConfirmed = true
         };
+        user.SetSubscriptionLevel(SubscriptionLevels.Enterprise);
         userManager.CreateAsync(user, "Passw0rd!").GetAwaiter().GetResult();
 
         var user2 = new User(firstName: "Second", lastName: "User", enabled: true)
@@ -118,12 +119,17 @@ try
         category.AddExpense(expense2);
         unitOfWork.CategoryRepository.Insert(category);
 
+        var client = new Client("John Smith", "John@test.com");
+        unitOfWork.ClientRepository.Insert(client);
+
         var ri = new RegionInfo("pt");
         var project = new Project(name: "Family", preferredCurrency: ri.ISOCurrencySymbol);
         project.SetId(new Guid("bf060bc8-48bf-4f5b-3761-08dc54ba19f4"));
         project.AddIncome(income);
         project.AddIncome(income2);
         project.AddCategory(category);
+        project.AddClient(client);
+        project.SetType(ProjectTypes.Company);
         unitOfWork.ProjectRepository.Insert(project);
 
         var userProject = new UserProject(user, project, Role.Admin);
